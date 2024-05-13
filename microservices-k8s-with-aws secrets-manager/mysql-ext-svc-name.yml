@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-rds-db
+spec:
+  type: ExternalName
+  externalName: usermgmtdb.ctwokme2u3n7.us-east-1.rds.amazonaws.com

@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  name: frontend-microservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend-microservice
+  template:  
+    metadata:
+      labels: 
+        app: frontend-microservice
+    spec:
+      serviceAccountName: rds-secrets-manager     
+      volumes:
+        - name: db-creds
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: aws-secrets
+      containers:
+        - name: usermgmt-deploy
+          image: shivisis/kube-usermanagement-microservice:1.0
+          ports: 
+            - containerPort: 8095 
+          volumeMounts:
+          - name: db-creds
+            mountPath: "/mnt/secrets-store"
+            readOnly: true   
+          env:
+            - name: DB_HOSTNAME
+              value: "mysql-rds-db"            #mysql external svc name
+            - name: DB_PORT
+              value: "3306"            
+            - name: DB_NAME
+              value: "usermgmtdb"            
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: rds-username-and-password
+                  key: shivalika        
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rds-username-and-password
+                  key: Shivi  
+            - name: NOTIFICATION_SERVICE_HOST
+              value: "notification-clusterip-service"
+            - name: NOTIFICATION_SERVICE_PORT
+              value: "8096"           
